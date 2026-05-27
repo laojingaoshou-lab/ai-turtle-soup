@@ -1,0 +1,135 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg: #090912;
+  --color-surface: rgba(22, 20, 45, 0.65);
+  --color-primary: #A78BFA;
+  --color-primary-light: #C4B5FD;
+  --color-primary-dark: #7C3AED;
+  --color-success: #5EEAD4;
+  --color-danger: #F472B6;
+  --color-warn: #FBBF24;
+  --color-text: #E8E6F0;
+  --color-text-secondary: #9D99B5;
+  --color-text-muted: #6B6680;
+  --color-error: #FB7185;
+  --color-glass-border: rgba(255, 255, 255, 0.07);
+  --color-glass-border-strong: rgba(167, 139, 250, 0.30);
+}
+
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+}
+
+::-webkit-scrollbar {
+  display: none;
+}
+
+* {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+@keyframes title-glow {
+  0%, 100% { text-shadow: 0 0 15px rgba(167, 139, 250, 0.5); }
+  50% { text-shadow: 0 0 30px rgba(167, 139, 250, 0.8), 0 0 60px rgba(167, 139, 250, 0.4); }
+}
+
+@keyframes border-pulse {
+  0%, 100% { border-color: rgba(167, 139, 250, 0.15); }
+  50% { border-color: rgba(167, 139, 250, 0.35); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-title-glow {
+  animation: title-glow 3s ease-in-out infinite;
+}
+
+.animate-border-pulse {
+  animation: border-pulse 2.5s ease-in-out infinite;
+}
+
+.animate-shimmer {
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.4s ease-out forwards;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.25s ease-out forwards;
+}
+
+.animate-spin-slow {
+  animation: spin-slow 2s linear infinite;
+}
+
+.glass {
+  background: rgba(22, 20, 45, 0.65);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+}
+
+.glass-strong {
+  background: rgba(22, 20, 45, 0.65);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(167, 139, 250, 0.30);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35), 0 0 20px rgba(167, 139, 250, 0.15);
+}
+
+.modal-overlay {
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.modal-container {
+  background: rgba(22, 20, 45, 0.95);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+}
+
+.skeleton {
+  background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}

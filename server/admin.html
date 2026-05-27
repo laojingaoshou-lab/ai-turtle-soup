@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI主持人海龟汤 - 管理员后台</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    background: #0F0B1A;
+    color: #E8E6F0;
+    min-height: 100vh;
+  }
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse at 50% 0%, rgba(120, 80, 255, 0.08) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 24px 16px;
+  }
+
+  /* Login */
+  .login-card {
+    max-width: 380px;
+    margin: 80px auto 0;
+    text-align: center;
+  }
+  .login-icon {
+    width: 64px; height: 64px;
+    border-radius: 16px;
+    background: rgba(167, 139, 250, 0.1);
+    display: inline-flex; align-items: center; justify-content: center;
+    margin-bottom: 16px;
+  }
+  .login-card h1 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+  .login-card .sub { font-size: 12px; color: #6B6680; margin-bottom: 24px; }
+  .login-card input {
+    width: 100%; padding: 12px 16px;
+    border-radius: 12px; border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.04); color: #E8E6F0;
+    font-size: 14px; outline: none; margin-bottom: 12px;
+    transition: border-color 0.2s;
+  }
+  .login-card input:focus { border-color: rgba(167,139,250,0.3); }
+  .login-card .err { font-size: 12px; color: #FB7185; margin-bottom: 8px; }
+  .btn {
+    width: 100%; padding: 12px;
+    border-radius: 12px; border: none;
+    font-size: 14px; font-weight: 600; cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-primary {
+    background: rgba(167,139,250,0.15); color: #A78BFA;
+  }
+  .btn-primary:hover { background: rgba(167,139,250,0.25); }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* Dashboard */
+  .header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  .header h1 { font-size: 18px; font-weight: 700; }
+  .btn-logout { font-size: 12px; color: #6B6680; background: none; border: none; cursor: pointer; }
+  .btn-logout:hover { color: #FB7185; }
+  .tabs {
+    display: flex; gap: 4px; padding: 4px;
+    border-radius: 12px; background: rgba(255,255,255,0.03);
+    margin-bottom: 20px;
+  }
+  .tab {
+    flex: 1; padding: 8px; border-radius: 8px; border: none; cursor: pointer;
+    font-size: 12px; font-weight: 500; background: none;
+    color: #6B6680; transition: all 0.2s;
+  }
+  .tab.active { background: rgba(167,139,250,0.2); color: #A78BFA; }
+  .tab:hover:not(.active) { color: #E8E6F0; }
+
+  /* Cards */
+  .list { display: flex; flex-direction: column; gap: 12px; }
+  .empty { text-align: center; font-size: 12px; color: #6B6680; padding: 40px 0; }
+  .card {
+    background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 14px; overflow: hidden;
+    animation: fadeIn 0.3s ease;
+  }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } }
+  .card-header {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 16px; cursor: pointer; border: none; background: none;
+    width: 100%; text-align: left; color: inherit; font: inherit;
+    transition: background 0.15s;
+  }
+  .card-header:hover { background: rgba(255,255,255,0.02); }
+  .card-info { flex: 1; min-width: 0; }
+  .card-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+  .card-title span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .badge {
+    font-size: 10px; font-weight: 500; padding: 2px 8px; border-radius: 99px;
+    flex-shrink: 0;
+  }
+  .badge-pending { background: rgba(251,191,36,0.1); color: #FBBF24; }
+  .badge-approved { background: rgba(94,234,212,0.1); color: #5EEAD4; }
+  .badge-rejected { background: rgba(244,114,182,0.1); color: #F472B6; }
+  .badge-diff { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 99px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .badge-easy { background: rgba(94,234,212,0.12); color: #5EEAD4; }
+  .badge-medium { background: rgba(251,191,36,0.12); color: #FBBF24; }
+  .badge-hard { background: rgba(244,114,182,0.12); color: #F472B6; }
+  .card-meta { font-size: 11px; color: #6B6680; display: flex; align-items: center; gap: 6px; }
+  .card-chevron { color: #6B6680; flex-shrink: 0; transition: transform 0.2s; }
+  .card-chevron.open { transform: rotate(180deg); }
+
+  .card-body {
+    padding: 0 16px 16px; border-top: 1px solid rgba(255,255,255,0.04);
+    display: none;
+  }
+  .card-body.open { display: block; }
+  .card-body .label { font-size: 10px; color: #6B6680; margin-bottom: 4px; }
+  .card-body .content { font-size: 13px; color: #E8E6F0; line-height: 1.6; margin-bottom: 12px; }
+  .card-body .hint-item { font-size: 12px; color: #9D99B5; }
+  .card-body .note-box {
+    padding: 8px 12px; border-radius: 8px;
+    background: rgba(244,114,182,0.08); border: 1px solid rgba(244,114,182,0.12);
+    margin-bottom: 12px;
+  }
+  .card-body .note-box .label { color: #F472B6; }
+  .actions { display: flex; gap: 8px; padding-top: 8px; }
+  .btn-sm {
+    padding: 8px 16px; border-radius: 8px; border: none;
+    font-size: 12px; font-weight: 500; cursor: pointer;
+    display: flex; align-items: center; gap: 6px;
+    transition: all 0.15s;
+  }
+  .btn-approve { background: rgba(94,234,212,0.12); color: #5EEAD4; }
+  .btn-approve:hover { background: rgba(94,234,212,0.22); }
+  .btn-reject { background: rgba(244,114,182,0.12); color: #F472B6; }
+  .btn-reject:hover { background: rgba(244,114,182,0.22); }
+  .btn-delete { background: rgba(251,113,133,0.1); color: #FB7185; }
+  .btn-delete:hover { background: rgba(251,113,133,0.18); }
+  .btn-edit { background: rgba(167,139,250,0.1); color: #A78BFA; }
+  .btn-edit:hover { background: rgba(167,139,250,0.2); }
+  .btn-add {
+    background: rgba(94,234,212,0.12); color: #5EEAD4;
+    padding: 6px 14px; border-radius: 8px; border: 1px solid rgba(94,234,212,0.2);
+    font-size: 12px; font-weight: 600; cursor: pointer;
+    transition: all 0.15s; display: flex; align-items: center; gap: 6px;
+  }
+  .btn-add:hover { background: rgba(94,234,212,0.2); }
+
+  /* Modal */
+  .modal-mask {
+    position: fixed; inset: 0; z-index: 100;
+    background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);
+    display: flex; align-items: center; justify-content: center;
+    animation: fadeIn 0.15s ease;
+  }
+  .modal-box {
+    background: rgba(20,15,40,0.95); border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px; padding: 24px; width: 90%; max-width: 360px;
+  }
+  .modal-box h3 { font-size: 14px; font-weight: 600; margin-bottom: 12px; }
+  .modal-box textarea {
+    width: 100%; padding: 10px 12px; border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.04); color: #E8E6F0;
+    font-size: 13px; outline: none; resize: none;
+    margin-bottom: 16px; font-family: inherit;
+  }
+  .modal-box textarea:focus { border-color: rgba(244,114,182,0.3); }
+  .modal-box input, .modal-box select {
+    width: 100%; padding: 10px 12px; border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.04); color: #E8E6F0;
+    font-size: 13px; outline: none; margin-bottom: 12px;
+    font-family: inherit;
+  }
+  .modal-box input:focus, .modal-box select:focus { border-color: rgba(167,139,250,0.3); }
+  .modal-box select option { background: #1a1530; color: #E8E6F0; }
+  .modal-box .field-label { font-size: 10px; color: #6B6680; margin-bottom: 4px; display: block; }
+  .modal-wide { max-width: 520px !important; }
+  .modal-actions { display: flex; gap: 8px; }
+  .btn-cancel {
+    flex: 1; padding: 10px; border-radius: 8px; border: none;
+    font-size: 12px; font-weight: 500; cursor: pointer;
+    background: rgba(255,255,255,0.04); color: #9D99B5;
+  }
+  .btn-cancel:hover { background: rgba(255,255,255,0.08); }
+  .btn-confirm-reject {
+    flex: 1; padding: 10px; border-radius: 8px; border: none;
+    font-size: 12px; font-weight: 500; cursor: pointer;
+    background: rgba(244,114,182,0.12); color: #F472B6;
+  }
+  .btn-confirm-reject:hover { background: rgba(244,114,182,0.22); }
+
+  /* Toast */
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    z-index: 200; padding: 10px 20px; border-radius: 99px;
+    background: rgba(167,139,250,0.9); color: #fff;
+    font-size: 12px; font-weight: 500;
+    animation: toastIn 0.3s ease;
+    pointer-events: none;
+  }
+  @keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(12px); } }
+</style>
+</head>
+<body>
+<div class="container" id="app"></div>
+<div id="modal-root"></div>
+<div id="toast-root"></div>
+
+<script>
+const API = '/api';
+let token = null;
+
+async function req(url, opts = {}) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = 'Bearer ' + token;
+  const res = await fetch(API + url, { headers, ...opts });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || '请求失败');
+  return data;
+}
+
+function showToast(msg) {
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.textContent = msg;
+  document.getElementById('toast-root').appendChild(el);
+  setTimeout(() => el.remove(), 2500);
+}
+
+function h(html) {
+  const t = document.createElement('template');
+  t.innerHTML = html.trim();
+  return t.content.firstChild;
+}
+
+// ===== Login Page =====
+function renderLogin() {
+  document.getElementById('app').innerHTML = `
+    <div class="login-card">
+      <div class="login-icon">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#A78BFA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+      <h1>管理员后台</h1>
+      <p class="sub">AI主持人海龟汤 · 剧本审核管理</p>
+      <input type="password" id="pw" placeholder="管理员密码" autofocus>
+      <p class="err" id="err"></p>
+      <button class="btn btn-primary" id="login-btn">登 录</button>
+    </div>
+  `;
+  document.getElementById('pw').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') document.getElementById('login-btn').click();
+  });
+  document.getElementById('login-btn').addEventListener('click', async () => {
+    const pw = document.getElementById('pw').value;
+    if (!pw) return;
+    const btn = document.getElementById('login-btn');
+    btn.disabled = true; btn.textContent = '登录中...';
+    try {
+      const data = await req('/admin/login', { method: 'POST', body: JSON.stringify({ password: pw }) });
+      token = data.token;
+      localStorage.setItem('admin_token', token);
+      renderDashboard();
+    } catch (e) {
+      document.getElementById('err').textContent = '密码错误';
+      btn.disabled = false; btn.textContent = '登 录';
+    }
+  });
+}
+
+// ===== Dashboard =====
+let activeTab = 'pending';
+let submissions = [];
+let loading = false;
+
+async function loadSubmissions() {
+  loading = true;
+  renderDashboard();
+  try {
+    if (activeTab === 'approved') {
+      const res = await fetch(API + '/scripts/approved');
+      const data = await res.json();
+      submissions = data.map(s => ({ ...s, status: 'approved', submittedAt: s.createdAt || Date.now(), author: s.author || '未知' }));
+    } else {
+      submissions = await req('/admin/submissions?status=' + activeTab);
+    }
+  } catch (e) {
+    showToast('加载失败');
+  } finally {
+    loading = false;
+    renderDashboard();
+  }
+}
+
+function switchTab(tab) {
+  activeTab = tab;
+  loadSubmissions();
+}
+
+async function approve(id) {
+  try { await req('/admin/submissions/' + id + '/approve', { method: 'POST' }); showToast('已通过审核'); loadSubmissions(); }
+  catch { showToast('操作失败'); }
+}
+
+function openReject(id) {
+  document.getElementById('modal-root').innerHTML = `
+    <div class="modal-mask" id="modal">
+      <div class="modal-box">
+        <h3>拒绝原因（可选）</h3>
+        <textarea id="note" rows="3" placeholder="输入拒绝原因..."></textarea>
+        <div class="modal-actions">
+          <button class="btn-cancel" id="modal-cancel">取消</button>
+          <button class="btn-confirm-reject" id="modal-confirm">确认拒绝</button>
+        </div>
+      </div>
+    </div>
+  `;
+  document.getElementById('modal-cancel').addEventListener('click', () => document.getElementById('modal-root').innerHTML = '');
+  document.getElementById('modal-confirm').addEventListener('click', async () => {
+    const note = document.getElementById('note').value;
+    try { await req('/admin/submissions/' + id + '/reject', { method: 'POST', body: JSON.stringify({ note }) }); showToast('已拒绝'); document.getElementById('modal-root').innerHTML = ''; loadSubmissions(); }
+    catch { showToast('操作失败'); }
+  });
+}
+
+async function deleteItem(id) {
+  if (!confirm('确定删除？')) return;
+  try {
+    if (activeTab === 'approved') await req('/admin/approved/' + id, { method: 'DELETE' });
+    else await req('/admin/submissions/' + id, { method: 'DELETE' });
+    showToast('已删除'); loadSubmissions();
+  } catch { showToast('操作失败'); }
+}
+
+function logout() {
+  token = null; localStorage.removeItem('admin_token'); renderLogin();
+}
+
+function openAddScript() {
+  showScriptForm('添加剧本', {}, false);
+}
+
+function openEditScript(id) {
+  const s = submissions.find(x => x.id === id);
+  if (!s) return;
+  showScriptForm('编辑剧本', s, true, id);
+}
+
+function showScriptForm(title, data, isEdit, editId) {
+  const hintsVal = data.hints ? data.hints.join('\n') : '';
+  document.getElementById('modal-root').innerHTML = `
+    <div class="modal-mask" id="modal">
+      <div class="modal-box modal-wide">
+        <h3>${title}</h3>
+        <label class="field-label">标题 *</label>
+        <input id="sf-title" value="${esc(data.title || '')}" maxlength="50">
+        <label class="field-label">汤面（场景描述）*</label>
+        <textarea id="sf-scenario" rows="3">${esc(data.scenario || '')}</textarea>
+        <label class="field-label">汤底（完整真相）*</label>
+        <textarea id="sf-truth" rows="3">${esc(data.truth || '')}</textarea>
+        <label class="field-label">提示（每行一条）</label>
+        <textarea id="sf-hints" rows="3" placeholder="提示1&#10;提示2&#10;提示3">${esc(hintsVal)}</textarea>
+        <div style="display:flex;gap:12px;">
+          <div style="flex:1;">
+            <label class="field-label">难度</label>
+            <select id="sf-difficulty">
+              <option value="easy" ${data.difficulty === 'easy' ? 'selected' : ''}>简单</option>
+              <option value="medium" ${data.difficulty === 'medium' ? 'selected' : ''}>中等</option>
+              <option value="hard" ${data.difficulty === 'hard' ? 'selected' : ''}>困难</option>
+            </select>
+          </div>
+          <div style="flex:1;">
+            <label class="field-label">分类</label>
+            <input id="sf-category" value="${esc(data.category || '')}" maxlength="20" placeholder="如：悬疑、经典">
+          </div>
+        </div>
+        <div class="modal-actions" style="margin-top:4px;">
+          <button class="btn-cancel" onclick="document.getElementById('modal-root').innerHTML=''">取消</button>
+          <button class="btn-confirm-reject" style="background:rgba(167,139,250,0.15);color:#A78BFA;" onclick="submitScriptForm(${isEdit}, '${editId || ''}')">${isEdit ? '保存修改' : '添加剧本'}</button>
+        </div>
+      </div>
+    </div>
+  `;
+  document.getElementById('modal').addEventListener('click', function(e) {
+    if (e.target === this) document.getElementById('modal-root').innerHTML = '';
+  });
+}
+
+async function submitScriptForm(isEdit, id) {
+  const title = document.getElementById('sf-title').value.trim();
+  const scenario = document.getElementById('sf-scenario').value.trim();
+  const truth = document.getElementById('sf-truth').value.trim();
+  if (!title || !scenario || !truth) { showToast('标题、汤面、汤底不能为空'); return; }
+  const hints = document.getElementById('sf-hints').value.split('\n').map(h => h.trim()).filter(Boolean);
+  const difficulty = document.getElementById('sf-difficulty').value;
+  const category = document.getElementById('sf-category').value.trim();
+  const payload = { title, scenario, truth, hints, difficulty, category: category || undefined };
+  try {
+    if (isEdit) {
+      await req('/admin/approved/' + id, { method: 'PUT', body: JSON.stringify(payload) });
+      showToast('已保存修改');
+    } else {
+      await req('/admin/approved', { method: 'POST', body: JSON.stringify(payload) });
+      showToast('已添加剧本');
+    }
+    document.getElementById('modal-root').innerHTML = '';
+    loadSubmissions();
+  } catch (e) {
+    showToast(e.message || '操作失败');
+  }
+}
+
+function renderDashboard() {
+  const diffLabels = { easy: '简单', medium: '中等', hard: '困难' };
+  const tabLabels = { pending: '待审核', approved: '已通过', rejected: '已拒绝' };
+
+  let html = `
+    <div class="header">
+      <h1>剧本审核管理</h1>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button class="btn-add" onclick="openAddScript()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          添加剧本
+        </button>
+        <button class="btn-logout" onclick="logout()">退出登录</button>
+      </div>
+    </div>
+    <div class="tabs">
+      ${['pending','approved','rejected'].map(t => `
+        <button class="tab ${activeTab === t ? 'active' : ''}" onclick="switchTab('${t}')">${tabLabels[t]}</button>
+      `).join('')}
+    </div>
+  `;
+
+  if (loading) {
+    html += '<div class="empty">加载中...</div>';
+  } else if (submissions.length === 0) {
+    html += '<div class="empty">暂无数据</div>';
+  } else {
+    html += '<div class="list">';
+    submissions.forEach(s => {
+      const diffClass = 'badge-' + s.difficulty;
+      const statusClass = 'badge-' + s.status;
+      html += `
+        <div class="card" data-id="${s.id}">
+          <button class="card-header" onclick="toggleCard(this)">
+            <div class="card-info">
+              <div class="card-title">
+                <span>${esc(s.title)}</span>
+                <span class="badge ${statusClass}">${tabLabels[s.status]}</span>
+              </div>
+              <div class="card-meta">
+                <span>${esc(s.author)}</span>
+                <span>·</span>
+                <span class="badge-diff ${diffClass}">${diffLabels[s.difficulty]}</span>
+                ${s.category ? '<span>·</span><span>' + esc(s.category) + '</span>' : ''}
+                <span>·</span>
+                <span>${fmtDate(s.submittedAt)}</span>
+              </div>
+            </div>
+            <svg class="card-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="card-body">
+            <div class="label">汤面</div>
+            <div class="content">${esc(s.scenario)}</div>
+            <div class="label">汤底</div>
+            <div class="content">${esc(s.truth)}</div>
+            ${s.hints.length > 0 ? '<div class="label">提示</div>' + s.hints.map((h,i) => '<div class="hint-item">' + (i+1) + '. ' + esc(h) + '</div>').join('') : ''}
+            ${s.adminNote ? '<div class="note-box"><div class="label">审核备注</div><div class="content" style="margin-bottom:0">' + esc(s.adminNote) + '</div></div>' : ''}
+            ${s.status === 'pending' ? `
+              <div class="actions">
+                <button class="btn-sm btn-approve" onclick="event.stopPropagation(); approve('${s.id}')">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  通过
+                </button>
+                <button class="btn-sm btn-reject" onclick="event.stopPropagation(); openReject('${s.id}')">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                  拒绝
+                </button>
+              </div>
+            ` : `
+              <div class="actions">
+                ${s.status === 'approved' ? `
+                <button class="btn-sm btn-edit" onclick="event.stopPropagation(); openEditScript('${s.id}')">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                  编辑
+                </button>
+                ` : ''}
+                <button class="btn-sm btn-delete" onclick="event.stopPropagation(); deleteItem('${s.id}')">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+                  删除
+                </button>
+              </div>
+            `}
+          </div>
+        </div>
+      `;
+    });
+    html += '</div>';
+  }
+
+  document.getElementById('app').innerHTML = html;
+}
+
+function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+function fmtDate(ts) { return new Date(ts).toLocaleDateString('zh-CN'); }
+
+function toggleCard(btn) {
+  const body = btn.nextElementSibling;
+  const chevron = btn.querySelector('.card-chevron');
+  body.classList.toggle('open');
+  chevron.classList.toggle('open');
+}
+
+// ===== Init =====
+if (localStorage.getItem('admin_token')) {
+  token = localStorage.getItem('admin_token');
+  // Verify token is still valid by making a request
+  req('/admin/submissions?status=pending')
+    .then(() => { loadSubmissions(); })
+    .catch(() => { token = null; localStorage.removeItem('admin_token'); renderLogin(); });
+} else {
+  renderLogin();
+}
+</script>
+</body>
+</html>

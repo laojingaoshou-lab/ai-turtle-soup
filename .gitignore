@@ -1,0 +1,36 @@
+﻿# 依赖
+node_modules/
+
+# 构建产物
+dist/
+
+# 数据库（含用户数据）
+server/data/
+
+# 环境变量（含密钥）
+.env
+deploy/.env.production
+
+# 日志
+*.log
+npm-debug.log*
+
+# IDE / 编辑器
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+Thumbs.db
+.DS_Store
+
+# 部署包
+haigui-deploy.tar.gz
+
+# Claude 内部文件
+.claude/
+
+# 杂项
+代办
