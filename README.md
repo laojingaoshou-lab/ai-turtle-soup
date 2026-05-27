@@ -1,73 +1,76 @@
-# React + TypeScript + Vite
+# AI主持人海龟汤 🍲
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+> AI 驱动的沉浸式情境推理游戏（Situation Puzzle / Lateral Thinking Puzzle）
 
-Currently, two official plugins are available:
+**[🎮 开始游戏 → https://haigui.yuntianli.art](https://haigui.yuntianli.art)**
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## 关于
 
-## React Compiler
+海龟汤是一种经典的推理游戏：玩家面对一个奇怪甚至荒诞的场景（"汤面"），通过向主持人提问"是/否"问题来逐步还原事件真相（"汤底"）。本项目使用 AI 大模型作为主持人，支持单人和多人联机模式。
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 特性
 
-## Expanding the ESLint configuration
+- 🤖 **AI 主持人** — 支持 DeepSeek、OpenAI、智谱、Kimi、通义千问等大模型
+- 🎯 **双模式** — 简单模式（AI 提供解释）和硬核模式（仅回答是/否/无关）
+- 👥 **多人联机** — 创建房间邀请朋友一起推理，支持 AI/人工主持人
+- 📝 **剧本系统** — 内置剧本 + 社区投稿 + AI 提炼 + 自定义导入
+- 🔐 **账号系统** — 注册登录，游戏记录和自定义剧本云端同步
+- 📱 **响应式设计** — 桌面端和移动端均可流畅使用
+- 🌙 **深色主题** — 沉浸式游戏体验
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## 快速开始
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+### 1. 克隆项目
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+git clone https://github.com/laojingaoshou-lab/ai-turtle-soup.git
+cd ai-turtle-soup
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### 2. 安装依赖
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
 ```
+
+### 3. 启动开发服务器
+
+```bash
+# 启动后端（端口 3001）
+npm run server
+
+# 另一个终端启动前端（端口 5173）
+npm run dev
+```
+
+### 4. 配置 AI
+
+打开 http://localhost:5173/settings，配置你的大模型 API 密钥。推荐使用 [DeepSeek](https://platform.deepseek.com)，价格极低。
+
+## 技术栈
+
+| 层 | 技术 |
+|---|---|
+| 前端 | React 19 + TypeScript + Vite + Tailwind CSS 4 |
+| 后端 | Express + Socket.IO |
+| 数据库 | SQLite (better-sqlite3) |
+| 状态管理 | Zustand |
+| 动画 | Framer Motion |
+| 认证 | JWT + bcryptjs |
+
+## 部署
+
+项目包含完整的部署配置（`deploy/` 目录），支持使用 Nginx 反向代理 + PM2 进程守护部署到 Linux 服务器。
+
+```bash
+# 构建前端
+npm run build
+
+# 上传到服务器并运行部署脚本
+scp -r dist/ server/ package.json deploy/ root@your-server:/var/www/haigui/
+ssh root@your-server "cd /var/www/haigui && npm install --omit=dev && pm2 start server/index.js --name haigui"
+```
+
+## 许可证
+
+MIT
