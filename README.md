@@ -7,6 +7,7 @@
 ## 关于
 
 海龟汤是一种经典的推理游戏：玩家面对一个奇怪甚至荒诞的场景（"汤面"），通过向主持人提问"是/否"问题来逐步还原事件真相（"汤底"）。本项目使用 AI 大模型作为主持人，支持单人和多人联机模式。
+使用vibe coding开发，本人技术力及其有限。
 
 ## 特性
 
@@ -45,7 +46,7 @@ npm run dev
 
 ### 4. 配置 AI
 
-打开 http://localhost:5173/settings，配置你的大模型 API 密钥。推荐使用 [DeepSeek](https://platform.deepseek.com)，价格极低。
+打开 http://localhost:5173  配置你的大模型 API 密钥。
 
 ## 技术栈
 
